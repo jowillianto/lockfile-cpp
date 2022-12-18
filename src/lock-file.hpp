@@ -13,14 +13,12 @@ namespace Lock{
         _fileSection= section;
       }
       /*
-        filePath()
         returns the file path to the lock file
       */
       const std::filesystem::path& filePath()const{
         return _filePath;
       }
       /*
-        data()
         returns the internal data stored in the file. LockSection type
       */
       LockSection& data(){
@@ -30,7 +28,7 @@ namespace Lock{
         return *_fileSection;
       }
       
-      // Override
+      // Override the functions over here.
     private:
       std::filesystem::path _filePath;
       LockSection* _fileSection;

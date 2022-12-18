@@ -1,13 +1,18 @@
 #pragma once
 #include "./lock-base.hpp"
+#include "./exceptions.hpp"
 #include <vector>
 
 namespace Lock{
   class LockSection : public LockBase{
     public:
-      LockSection() : LockBase(LOCK_TYPE_SECTION){
-
-      }
+      LockSection() : LockBase(LOCK_TYPE_SECTION){}
+      /*
+        Add a field into the LockSection. Somehow requires a pointer.
+        fieldName   -> the name of the field
+        lockField   -> the lock base we are supposed to add to the section
+        deleteAfter -> if the field should be deleted later
+      */
       void addField(
         const std::string& fieldName, LockBase* lockField, 
         const bool& deleteAfter = true
@@ -15,72 +20,70 @@ namespace Lock{
         if(_value.count(fieldName) == 0){
           _value[fieldName]   = lockField;
           _boolMap[fieldName] = deleteAfter;
-          _typeMap[fieldName] = lockField -> lockType();
           _fields.push_back(fieldName);
         }
-        else{
-          // Throw exception if field already exists
-        }
+        else
+          throw FieldAlreadyExists(fieldName);
       }
       /*
-        getRaw()
         returns a LockBase reference of the corresponding field. The field can 
         then be type casted or just used for serialization and deserialization.
+        fieldName   -> the name of the field
       */
       LockBase& getRaw(const std::string& fieldName){
         if(_value.count(fieldName) != 0)
           return *(_value.at(fieldName));
-          // Throw exception
+        else
+          throw FieldNotFound(fieldName);
       }
       const LockBase& getRaw(const std::string& fieldName)const{
         if(_value.count(fieldName) != 0)
           return *(_value.at(fieldName));
+        else
+          throw FieldNotFound(fieldName);
       }
       /*
-        getField()
         returns a type casted reference of the field. LockBaseWithType<T> is 
         expected as the return value.
+        fieldName   -> the name of the field
       */
       template<typename T>
       LockBaseWithType<T>& getField(const std::string& fieldName){
         auto& field     = getRaw(fieldName);
-        auto& fieldType = _typeMap[fieldName];
-        if(fieldType == LOCK_TYPE_FIELD){
+        if(field.lockType() == LOCK_TYPE_FIELD)
           return static_cast<LockBaseWithType<T>& >(field);
-        }
-        else{
-          // Throw error
-        }
+        else
+          throw FieldIsNotAField(fieldName);
+        
       }
       template<typename T>
       const LockBaseWithType<T>& getField(const std::string& fieldName) const{
         auto& field     = getRaw(fieldName);
-        auto& fieldType = _typeMap.at(fieldName);
-        if(fieldType == LOCK_TYPE_FIELD){
+        if(field.lockType() == LOCK_TYPE_FIELD)
           return static_cast<const LockBaseWithType<T>& >(field);
-        }
+        else
+          throw FieldIsNotAField(fieldName);
       }
       /*
-        getSection()
         returns a type casted reference of the field. LockSection is the return 
         type
+        fieldName   -> the name of the field
       */
       LockSection& getSection(const std::string& fieldName){
         auto& field     = getRaw(fieldName);
-        auto& fieldType = _typeMap.at(fieldName);
-        if(fieldType == LOCK_TYPE_SECTION){
+        if(field.lockType() == LOCK_TYPE_SECTION)
           return static_cast<LockSection& >(field);
-        }
+        else
+          throw FieldIsNotASection(fieldName);
       }
       const LockSection& getSection(const std::string& fieldName)const{
         auto& field     = getRaw(fieldName);
-        auto& fieldType = _typeMap.at(fieldName);
-        if(fieldType == LOCK_TYPE_SECTION){
+        if(field.lockType() == LOCK_TYPE_SECTION)
           return static_cast<const LockSection& >(field);
-        }
+        else
+          throw FieldIsNotASection(fieldName);
       }
       /*
-        fields()
         Get a list of fields in the section
       */
       const std::vector<std::string>& fields()const{
@@ -94,20 +97,9 @@ namespace Lock{
       void deserialize(const std::string& value){
 
       }
-      ~LockSection(){
-        for(auto& [key, value] : _value){
-          if(_boolMap[key]) delete value;
-        }
-      }
-
-
-      static LockSection& create(){
-        return *(new LockSection);
-      }
     protected:
       std::map<std::string, LockBase*> _value;
       std::map<std::string, bool> _boolMap;
-      std::map<std::string, std::size_t> _typeMap;
       std::vector<std::string> _fields;
   };
 }
