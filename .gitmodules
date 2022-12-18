@@ -1,0 +1,3 @@
+[submodule "deps/test-lib"]
+	path = deps/test-lib
+	url = git@github.com:test-lib
