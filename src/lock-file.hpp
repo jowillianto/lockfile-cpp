@@ -28,7 +28,7 @@ namespace Lock{
         return *_fileSection;
       }
       
-      // Override the functions over here.
+      // Override the functions over here to use as file.
     private:
       std::filesystem::path _filePath;
       LockSection* _fileSection;

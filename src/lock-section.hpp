@@ -13,13 +13,9 @@ namespace Lock{
         lockField   -> the lock base we are supposed to add to the section
         deleteAfter -> if the field should be deleted later
       */
-      void addField(
-        const std::string& fieldName, LockBase* lockField, 
-        const bool& deleteAfter = true
-      ){
+      void addField(const std::string& fieldName, LockBase* lockField){
         if(_value.count(fieldName) == 0){
           _value[fieldName]   = lockField;
-          _boolMap[fieldName] = deleteAfter;
           _fields.push_back(fieldName);
         }
         else
@@ -99,7 +95,6 @@ namespace Lock{
       }
     protected:
       std::map<std::string, LockBase*> _value;
-      std::map<std::string, bool> _boolMap;
       std::vector<std::string> _fields;
   };
 }
